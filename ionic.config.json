@@ -1,0 +1,7 @@
+{
+  "name": "myJsonApp",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "vue-vite"
+}
