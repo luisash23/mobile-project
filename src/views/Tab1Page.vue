@@ -83,8 +83,8 @@ const error = ref<Error | null>(null);
 // Logout handler
 const handleLogout = () => {
   try {
-    localStorage.removeItem('user');  // Hapus data user dari localStorage
-    router.push('/tabs/login');      // Redirect ke halaman login
+    localStorage.removeItem('user'); 
+    router.push('/tabs/login');      
   } catch (err) {
     console.error('Error during logout:', err);
   }
@@ -97,7 +97,12 @@ const fetchPosts = async () => {
   error.value = null;
 
   try {
-    const response = await axios.get(endpoint);
+    // Attach token if present
+    const token = localStorage.getItem('auth_token') || localStorage.getItem('token');
+    const headers: Record<string, string> = {};
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+
+    const response = await axios.get(endpoint, { headers });
     console.log('[Tab1Page] fetchPosts response:', response);
 
     // Support multiple possible response shapes:
@@ -117,8 +122,19 @@ const fetchPosts = async () => {
       console.warn('[Tab1Page] Unexpected response shape, setting posts to empty array');
     }
   } catch (err) {
-    error.value = err as Error;
-    console.error('Error fetching posts:', error.value.message);
+    // If unauthorized, redirect to login
+    const axiosErr: any = err;
+    if (axiosErr?.response?.status === 401) {
+      console.warn('[Tab1Page] Unauthorized (401) — redirecting to login');
+      // clear stored user/token and redirect
+      localStorage.removeItem('auth_token');
+      localStorage.removeItem('user');
+      router.replace('/tabs/login');
+      return;
+    }
+
+    error.value = axiosErr as Error;
+    console.error('Error fetching posts:', axiosErr?.message || axiosErr);
   } finally {
     loading.value = false;
   }

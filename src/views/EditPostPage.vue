@@ -44,7 +44,7 @@ const body = ref('')
 const postId = ref('')
 const route = useRoute();
 
-axios.get(`http://localhost:3000/data/${route.params.id}`)
+axios.get(`http://localhost:3000/data/post/${route.params.id}`)
     .then(response => {
         const post = response.data;
         UserId.value = post.userId;
